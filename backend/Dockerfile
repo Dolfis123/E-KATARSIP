@@ -1,4 +1,4 @@
-FROM docker.io/library/nginx:1.27-alpine
+FROM docker.io/library/node:18-alpine
 
 WORKDIR /app
 
