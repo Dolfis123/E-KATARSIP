@@ -1,9 +1,7 @@
+// components/PasswordInput.jsx
 import { useState } from 'react';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
-// Input password dengan tombol "tampilkan/sembunyikan" (show/hide) yang
-// dipakai kembali di seluruh formulir yang memiliki input kata sandi
-// (Login, Ubah Password, Tambah/Ubah Pengguna, Lupa Password, dsb).
 export default function PasswordInput({
   value,
   onChange,
@@ -20,7 +18,12 @@ export default function PasswordInput({
 
   return (
     <div className="relative">
-      {icon && <Lock size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />}
+      {icon && (
+        <Lock
+          size={17}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+        />
+      )}
       <input
         type={visible ? 'text' : 'password'}
         id={id}
@@ -31,7 +34,7 @@ export default function PasswordInput({
         required={required}
         minLength={minLength}
         autoComplete={autoComplete}
-        className={`input-field ${icon ? 'pl-10' : ''} pr-10 ${className}`}
+        className={`input-field ${icon ? '!pl-10' : '!pl-3.5'} !pr-10 !py-3 ${className}`}
       />
       <button
         type="button"
