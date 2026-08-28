@@ -1,0 +1,29 @@
+# Contoh konfigurasi Nginx di HOST VPS (di luar Docker) sebagai reverse proxy
+# ke kontainer frontend E-KATARSIP (yang di dalamnya juga menjalankan Nginx
+# dan meneruskan /api & /uploads ke kontainer backend).
+#
+# Simpan file ini di /etc/nginx/sites-available/ekatarsip.conf pada VPS Anda,
+# lalu buat symlink ke sites-enabled dan reload Nginx. Sesuaikan "server_name"
+# dan port sesuai nilai FRONTEND_PORT pada file .env di docker-compose.
+
+server {
+    listen 80;
+    server_name arsip.contoh-domain-anda.go.id;
+
+    client_max_body_size 20m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+
+# Setelah domain aktif dan DNS mengarah ke VPS ini, jalankan Certbot untuk HTTPS:
+#   sudo apt install certbot python3-certbot-nginx
+#   sudo certbot --nginx -d arsip.contoh-domain-anda.go.id
