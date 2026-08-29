@@ -60,6 +60,18 @@ const UserModel = {
     const [rows] = await pool.query(`SELECT COUNT(*) AS total FROM users WHERE status='aktif'`);
     return rows[0].total;
   },
+  // Tambahkan di dalam const UserModel = { ... }
+  async findRoleById(roleId) {
+    const [rows] = await pool.query(`SELECT nama_role FROM roles WHERE id = ? LIMIT 1`, [roleId]);
+    return rows[0];
+  },
+
+  async countSuperAdmins() {
+    const [rows] = await pool.query(
+      `SELECT COUNT(*) AS total FROM users u JOIN roles r ON u.role_id = r.id WHERE r.nama_role = 'Super Admin'`
+    );
+    return rows[0].total;
+  },
 };
 
 module.exports = UserModel;

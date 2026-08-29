@@ -19,6 +19,13 @@ exports.create = async (req, res, next) => {
     if (!nama_lengkap || !email || !password || !role_id) {
       return res.status(400).json({ success: false, message: 'Nama, email, password, dan role wajib diisi.' });
     }
+    const role = await UserModel.findRoleById(role_id);
+    if (role && role.nama_role === 'Super Admin') {
+      const superAdminCount = await UserModel.countSuperAdmins();
+      if (superAdminCount >= 1) {
+        return res.status(400).json({ success: false, message: 'Gagal! Hanya boleh ada 1 Super Admin di dalam sistem.' });
+      }
+    }
     const existing = await UserModel.findByEmail(email);
     if (existing) return res.status(409).json({ success: false, message: 'Email sudah terdaftar.' });
 
@@ -56,6 +63,25 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const currentUser = await UserModel.findById(id);
+    if (!currentUser) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
+
+    // Jika mencoba mengubah role_id
+    if (req.body.role_id && Number(req.body.role_id) !== currentUser.role_id) {
+      // 1. Mencegah Super Admin diturunkan jabatannya (agar sistem tidak kehilangan Super Admin)
+      if (currentUser.nama_role === 'Super Admin') {
+        return res.status(400).json({ success: false, message: 'Role akun Super Admin utama tidak dapat diubah.' });
+      }
+
+      // 2. Mencegah user biasa dinaikkan menjadi Super Admin jika sudah ada Super Admin lain
+      const targetRole = await UserModel.findRoleById(req.body.role_id);
+      if (targetRole && targetRole.nama_role === 'Super Admin') {
+        const superAdminCount = await UserModel.countSuperAdmins();
+        if (superAdminCount >= 1) {
+          return res.status(400).json({ success: false, message: 'Gagal! Hanya boleh ada 1 Super Admin di dalam sistem.' });
+        }
+      }
+    }
     const allowed = ['nama_lengkap', 'nip', 'jabatan', 'role_id', 'status', 'sub_bidang'];
     const fields = {};
     for (const f of allowed) if (req.body[f] !== undefined) fields[f] = req.body[f];
@@ -63,6 +89,7 @@ exports.update = async (req, res, next) => {
     if (req.body.password) fields.password = await bcrypt.hash(req.body.password, 10);
 
     await UserModel.update(id, fields);
+
     await ActivityLogModel.create({
       user_id: req.user.id, aksi: 'UBAH_USER', modul: 'user', referensi_id: id,
       deskripsi: `Memperbarui data pengguna ID ${id}`, ip_address: req.ip,
@@ -87,6 +114,13 @@ exports.remove = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Anda tidak dapat menghapus akun sendiri.' });
     }
     const existing = await UserModel.findById(id);
+
+    if (!existing) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
+
+    // Mencegah Super Admin dihapus
+    if (existing.nama_role === 'Super Admin') {
+      return res.status(400).json({ success: false, message: 'Akun Super Admin adalah akun inti dan tidak dapat dihapus.' });
+    }
     await UserModel.delete(id);
     await ActivityLogModel.create({
       user_id: req.user.id, aksi: 'HAPUS_USER', modul: 'user', referensi_id: id,
