@@ -30,7 +30,7 @@ async function sendMail({ to, subject, html, text }) {
   }
 
   return t.sendMail({
-    from: process.env.SMTP_FROM || 'E-KATARSIP <no-reply@papuabaratdaya.go.id>',
+    from: process.env.SMTP_FROM || 'E-KATARSIP <kdolfis@gmail.com>',
     to,
     subject,
     html,
