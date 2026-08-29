@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { ScrollText } from 'lucide-react';
 import Layout from '../components/Layout';
 import Pagination from '../components/Pagination';
 import api from '../services/api';
+import { formatInTimeZone } from 'date-fns-tz';
+import { id as localeId } from 'date-fns/locale'
 
 export default function ActivityLog() {
   const [items, setItems] = useState([]);
@@ -47,9 +48,9 @@ export default function ActivityLog() {
                 <p className="text-sm text-gray-800">
                   <span className="font-semibold">{l.nama_lengkap || 'Sistem'}</span> — {l.deskripsi}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {l.aksi} · {format(new Date(l.created_at), 'd MMM yyyy, HH:mm', { locale: localeId })} WIT
-                </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+           {l.aksi} · {formatInTimeZone(new Date(l.created_at), 'Asia/Jayapura', 'd MMM yyyy, HH:mm', { locale: localeId })} WIT
+         </p>
               </div>
             </div>
           ))}

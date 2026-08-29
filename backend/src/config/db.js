@@ -10,7 +10,14 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  dateStrings: true,
+  
+  // 1. HAPUS atau comment dateStrings agar Node.js mengubahnya jadi object Date yang standar
+  // dateStrings: true, 
+
+  // 2. TAMBAHKAN timezone agar pembacaan dari MySQL konsisten
+  // Jika server/database menyimpan waktu dalam format UTC, gunakan 'Z'
+  // Jika database menyimpan waktu dalam format WIT langsung, gunakan '+09:00'
+  timezone: 'Z', 
 });
 
 async function testConnection() {
